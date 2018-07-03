@@ -13,6 +13,15 @@ this file and include it in basic-server.js so that it actually works.
 **************************************************************/
 
 var requestHandler = function(request, response) {
+  
+  var defaultCorsHeaders = {
+    'access-control-allow-origin': '*',
+    'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'access-control-allow-headers': 'content-type, accept',
+    'access-control-max-age': 10 // Seconds.
+  };
+  
+  
   // Request and Response come from node's http module.
   //
   // They include information about both the incoming request, such as
@@ -27,20 +36,63 @@ var requestHandler = function(request, response) {
   // Adding more logging to your server can be an easy way to get passive
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
-  console.log('Serving request type ' + request.method + ' for url ' + request.url);
+  
+  // console.log('Serving request type ' + request.method + ' for url ' + request.url);
+  console.log('Request: ', 'Headers: ', request.headers, 'Method: ', request.method, request.url);
+  
+  // request.method === GET
+  // request.url === '/classes/messages'
 
   // The outgoing status.
   var statusCode = 200;
-
+  
   // See the note below about CORS headers.
   var headers = defaultCorsHeaders;
+  var holdData = {results: []};
 
   // Tell the client we are sending them plain text.
-  //
+  // 
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
-  headers['Content-Type'] = 'text/plain';
+  // headers['Content-Type'] = 'text/plain';
+  var test = '';
+  
+  if ( request.url === '/classes/messages' ) { 
+    if ( request.method === 'POST' ) {
+      console.log('This is right before request');
+      request
+        .on('error', (err) => {
+          console.error(err);
+        }).on('data', function (chunk) {
+        // console.log('Data: ', chunk);
+          test += chunk;
+        // console.log('response: ', response);
+        // console.log('body: ', body);
+        }).on('end', function() {
+          holdData.results.push(test);
+          console.log('Data: ', test);
+        });
+      
+      // response.on('error', (err) => {
+      //   console.error(err);
+      // });
+      
+      // response.statusCode = 404;
+      // response.setHeader('Content-Type', 'application/json');   
+      // // } else if ( request.method === 'POST' ) {
+      
+      // const responseBody = {headers, method, url, body};
+      
+      // response.write(JSON.stringify(responseBody));
+      // response.end();     
+    // }
+    }
+  }
 
+  statusCode = 200;
+  headers['Content-Type'] = 'application/json';
+  
+  // cond
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
   response.writeHead(statusCode, headers);
@@ -52,7 +104,7 @@ var requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end('Hello, World!');
+  response.end(JSON.stringify(holdData));
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
@@ -64,10 +116,40 @@ var requestHandler = function(request, response) {
 //
 // Another way to get around this restriction is to serve you chat
 // client from this domain by setting up static file serving.
-var defaultCorsHeaders = {
-  'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'access-control-allow-headers': 'content-type, accept',
-  'access-control-max-age': 10 // Seconds.
-};
 
+
+
+
+
+
+
+
+exports.requestHandler = requestHandler;
+
+
+
+//   } 
+//   // else if ( request.method === 'GET' ) {
+    
+//   //   statusCode = 200;
+//   //   response.writeHead(statusCode, headers);
+//   //   response.end(headers);
+    
+          
+//   //   // response.on('error', (err) => {
+//   //   //   console.error(err);
+//   //   // });
+    
+//   //   // response.statusCode = 404;
+//   //   // response.setHeader('Content-Type', 'application/json');   
+//   //   // const responseBody = {headers, method, url, body};
+    
+//   //   // response.write(JSON.stringify(responseBody));
+//   //   // response.end();     
+//   // // }
+//   // }
+// } else {
+//   statusCode = 404;
+//   response.writeHead(statusCode, headers);
+//   response.end(headers);
+// }
